@@ -33,4 +33,4 @@ $1 = {<text variable, no debug info>} 0x8048c18 <smoke>
 00 00 00 00
 18 8c 04 08
 ```
-![avatar](https://github.com/AmaIIl/attacklab/blob/gh-pages/image5.png)
+![avatar](https://github.com/AmaIIl/attacklab/blob/gh-pages/image0.png)
