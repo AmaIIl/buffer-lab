@@ -128,3 +128,24 @@ d8 37 68 55
 ```
 
 ![avatar](https://github.com/AmaIIl/buffer-lab/blob/gh-pages/image3.png)
+
+## Level 3: Dynamite (20 pts)
+本题要求：
+```
+修改getbuf()返回值为对应cookie，而不是1；
+恢复test函数中的%ebp寄存器内容；
+返回到接下去test()函数执行位置正常执行。
+```
+因为函数的返回值是使用eax寄存器实现的，所以我们可以使用上一个实验的办法进行代码注入后修改eax中的值为cookie再跳转回test函数
+而要保证不破坏栈的布局则需要不修改ebp的值，通过gdb获取ebp的值
+
+![avatar](https://github.com/AmaIIl/buffer-lab/blob/gh-pages/image4.png)
+
+使用与上一个实验同样的步骤将下面的汇编代码转为16进制字符串
+```
+mov   $0x2818dab8, %eax //eax = cookie
+push  $0x8048dbe        //test_address
+ret
+```
+
+
